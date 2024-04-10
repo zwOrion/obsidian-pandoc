@@ -1,4 +1,11 @@
 # Changelog
+### [0.4.20](https://github.com/zwOrion/obsidian-pandoc/compare/v0.3.0...v0.4.20) (2024-04-10)
+
+
+### Bug Fixes | Bug 修复
+
+* 修复新版本导出word时本地图片找不到的错误 ([802fc84](https://github.com/zwOrion/obsidian-pandoc/commit/802fc84a11e45e2455e141a2e85213711d88c2e2))
+
 ## 0.3.0 (2024-04-10)
 
 
