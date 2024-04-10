@@ -19,6 +19,7 @@ import * as temp from 'temp';
 import render from './renderer';
 import PandocPluginSettingTab from './settings';
 import { PandocPluginSettings, DEFAULT_SETTINGS, replaceFileExtension } from './global';
+import {t} from "./lang/helpers";
 export default class PandocPlugin extends Plugin {
     settings: PandocPluginSettings;
     features: { [key: string]: string | undefined } = {};
@@ -28,7 +29,7 @@ export default class PandocPlugin extends Plugin {
         await this.loadSettings();
 
         // Check if Pandoc, LaTeX, etc. are installed and in the PATH
-        this.createBinaryMap();
+        await this.createBinaryMap();
 
         // Register all of the command palette entries
         this.registerCommands();
@@ -39,14 +40,15 @@ export default class PandocPlugin extends Plugin {
     registerCommands() {
         for (let [prettyName, pandocFormat, extension, shortName] of outputFormats) {
 
-            const name = 'Export as ' + prettyName;
+            const name = t('Export as ') + prettyName;
             this.addCommand({
                 id: 'pandoc-export-' + pandocFormat, name,
                 checkCallback: (checking: boolean) => {
-                    if (!this.app.workspace.activeLeaf) return false;
+                    if (!this.app.workspace.getActiveViewOfType(MarkdownView)) return false;
                     if (!this.currentFileCanBeExported(pandocFormat as OutputFormat)) return false;
                     if (!checking) {
-                        this.startPandocExport(this.getCurrentFile(), pandocFormat as OutputFormat, extension, shortName);
+                       this.startPandocExport(this.getCurrentFile(), pandocFormat as OutputFormat, extension, shortName)
+                           .then(() => {});
                     }
                     return true;
                 }
@@ -98,7 +100,7 @@ export default class PandocPlugin extends Plugin {
             outputFile = path.join(this.settings.outputFolder, path.basename(outputFile));
         }
         const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-        
+
         try {
             let error, command;
 
@@ -109,7 +111,7 @@ export default class PandocPlugin extends Plugin {
                     if (format === 'html') {
                         // Write to HTML file
                         await fs.promises.writeFile(outputFile, html);
-                        new Notice('Successfully exported via Pandoc to ' + outputFile);
+                        new Notice(t('Successfully exported via Pandoc to ') + outputFile);
                         return;
                     } else {
                         // Spawn Pandoc
@@ -147,18 +149,18 @@ export default class PandocPlugin extends Plugin {
             }
 
             if (error.length) {
-                new Notice('Exported via Pandoc to ' + outputFile + ' with warnings');
-                new Notice('Pandoc warnings:' + error, 10000);
+                new Notice(t('Exported via Pandoc to {0} with warnings',outputFile));
+                new Notice(t('Pandoc warnings:') + error, 10000);
             } else {
-                new Notice('Successfully exported via Pandoc to ' + outputFile);
+                new Notice(t('Successfully exported via Pandoc to ') + outputFile);
             }
             if (this.settings.showCLICommands) {
-                new Notice('Pandoc command: ' + command, 10000);
+                new Notice(t('Pandoc command: ') + command, 10000);
                 console.log(command);
             }
 
         } catch (e) {
-            new Notice('Pandoc export failed: ' + e.toString(), 15000);
+            new Notice(t('Pandoc export failed: ') + e.toString(), 15000);
             console.error(e);
         }
     }

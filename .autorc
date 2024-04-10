@@ -1,6 +1,7 @@
 {
   "plugins": [
-    "obsidian"
+    "obsidian",
+     ["obsidian", { "dir": "./" }]
   ],
   "author": "Oliver Balfour <oliver.leo.balfour@gmail.com>"
 }
