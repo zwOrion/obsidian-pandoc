@@ -8,5 +8,6 @@
       "filename": "package.json",
       "type": "json"
     }
-  ]
+  ],
+  "versionPrefix": ""
 }
