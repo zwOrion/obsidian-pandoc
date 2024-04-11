@@ -1,12 +1,12 @@
 {
   "name": "obsidian-pandoc-plugin",
-  "version": "0.4.22",
+  "version": "0.4.23",
   "description": "Document exporting plugin for Obsidian using Pandoc",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
-    "release": "standard-version && git push --follow-tags"
+    "release": "standard-version --tag-prefix= && git push --follow-tags"
   },
   "keywords": [],
   "author": "Oliver Balfour <oliver.leo.balfour@gmail.com>",
