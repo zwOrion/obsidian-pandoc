@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
-    "release": "auto shipit"
+    "release": "standard-version && git push --follow-tags"
   },
   "keywords": [],
   "author": "Oliver Balfour <oliver.leo.balfour@gmail.com>",
