@@ -14,6 +14,7 @@ import { spawn, ChildProcess } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import { lookpath } from 'lookpath';
+import {t} from "./lang/helpers";
 
 // Pandoc CLI syntax
 // pandoc -f markdown -s -t html -o output.html input.md
@@ -35,7 +36,7 @@ export const inputExtensions = ['md', 'docx', 'csv', 'html', 'tex', 'odt'];
 
 // Subset of output formats, will add more later
 // Note: you need a `-o -` in the command to output odt, docx, epub or pdf output (presumably as they are binary formats or something)
-export type OutputFormat = 'asciidoc' | 'beamer' | 'commonmark_x' | 'docx' | 'epub'
+export type OutputFormat = 'asciidoc' | 'commonmark_x' | 'docx' | 'epub'
   | 'html' | 'pdf' | 'json' | 'latex' | 'odt' | 'pptx' | 'revealjs'
   | 'beamer' | 'rtf' | 'docuwiki' | 'mediawiki';
 
@@ -106,7 +107,7 @@ export const pandoc = async (input: PandocInput, output: PandocOutput, extraPara
     let result = '';
     let error = '';
 
-    const fileBaseName = (file: string): string => path.basename(file, path.extname(file));
+    // const fileBaseName = (file: string): string => path.basename(file, path.extname(file));
 
     // Construct the Pandoc arguments list
     let args: string[] = [];
@@ -207,7 +208,7 @@ export const pandoc = async (input: PandocInput, output: PandocOutput, extraPara
         // Check if the input file exists, and then start
         stat(input.file, (err: NodeJS.ErrnoException | null, stats: Stats) => {
             if (stats.isFile()) start();
-            else reject(new Error('Input file does not exist'));
+            else reject(new Error(t('Input file does not exist')));
         });
     }
 });
