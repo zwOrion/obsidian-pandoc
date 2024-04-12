@@ -1,6 +1,16 @@
 # Changelog
+### [0.4.2](https://github.com/zwOrion/obsidian-pandoc/compare/0.4.1...0.4.2) (2024-04-12)
 
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+### Bug Fixes | Bug 修复
+
+* 修复新版本导出word时本地图片找不到的错误 ([78a020a](https://github.com/zwOrion/obsidian-pandoc/commit/78a020a1e45bf4787f76d7a54e4102b08e806796))
+* 修复新版本导出word时本地图片找不到的错误 ([802fc84](https://github.com/zwOrion/obsidian-pandoc/commit/802fc84a11e45e2455e141a2e85213711d88c2e2))
+
+
+### Features | 新功能
+
+* 增加多语言配置 ([af3a618](https://github.com/zwOrion/obsidian-pandoc/commit/af3a618c1c62bb365d2b46d321435fa85a071785))
 
 ### 0.4.1 (2024-04-11)
 
