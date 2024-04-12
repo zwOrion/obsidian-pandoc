@@ -1,4 +1,3 @@
-
 /*
  * renderer.ts
  *
@@ -10,15 +9,14 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as YAML from 'yaml';
-import { Base64 } from 'js-base64';
+import {Base64} from 'js-base64';
 
-import { FileSystemAdapter, MarkdownRenderer, MarkdownView, Notice } from 'obsidian';
+import {FileSystemAdapter, MarkdownRenderer, MarkdownView, Notice} from 'obsidian';
 
 import PandocPlugin from './main';
-import { PandocPluginSettings } from './global';
+import {PandocPluginSettings} from './global';
 import mathJaxFontCSS from './styles/mathjax-css';
-import appCSS, { variables as appCSSVariables } from './styles/app-css';
-import { outputFormats } from 'pandoc';
+import appCSS, {variables as appCSSVariables} from './styles/app-css';
 
 // Note: parentFiles is for internal use (to prevent recursively embedded notes)
 // inputFile must be an absolute file path
@@ -31,7 +29,7 @@ export default async function render (plugin: PandocPlugin, view: MarkdownView,
     const wrapper = document.createElement('div');
     wrapper.style.display = 'hidden';
     document.body.appendChild(wrapper);
-    await MarkdownRenderer.renderMarkdown(markdown, wrapper, path.dirname(inputFile), view);
+    await MarkdownRenderer.render(plugin.app,markdown, wrapper, inputFile, view);
 
     // Post-process the HTML in-place
     await postProcessRenderedHTML(plugin, inputFile, wrapper, outputFormat,
@@ -71,13 +69,11 @@ async function getCustomCSS(settings: PandocPluginSettings, vaultBasePath: strin
     let buffer: Buffer = null;
     // Try absolute path
     try {
-        let test = await fs.promises.readFile(file);
-        buffer = test;
+        buffer = await fs.promises.readFile(file);
     } catch(e) { }
     // Try relative path
     try {
-        let test = await fs.promises.readFile(path.join(vaultBasePath, file));
-        buffer = test;
+        buffer = await fs.promises.readFile(path.join(vaultBasePath, file));
     } catch(e) { }
 
     if(!buffer) {
@@ -166,12 +162,12 @@ async function postProcessRenderedHTML(plugin: PandocPlugin, inputFile: string, 
     const adapter = plugin.app.vault.adapter as FileSystemAdapter;
     const settings = plugin.settings;
     // Fix <span src="image.png">
-    for (let span of Array.from(wrapper.querySelectorAll('span[src$=".png"], span[src$=".jpg"], span[src$=".gif"], span[src$=".jpeg"]'))) {
-        span.innerHTML = '';
-        span.outerHTML = span.outerHTML.replace(/span/g, 'img');
-    }
+    // for (let span of Array.from(wrapper.querySelectorAll('span[src$=".png"], span[src$=".jpg"], span[src$=".gif"], span[src$=".jpeg"]'))) {
+    //     span.innerHTML = '';
+    //     span.outerHTML = span.outerHTML.replace(/span/g, 'img');
+    // }
     // Fix <span class='internal-embed' src='another_note_without_extension'>
-    for (let span of Array.from(wrapper.querySelectorAll('span.internal-embed'))) {
+    for (let span of Array.from(wrapper.querySelectorAll('span.internal-embed.markdown-embed'))) {
         let src = span.getAttribute('src');
         if (src) {
             const subfolder = inputFile.substring(adapter.getBasePath().length);  // TODO: this is messy
@@ -197,12 +193,16 @@ async function postProcessRenderedHTML(plugin: PandocPlugin, inputFile: string, 
         }
     }
     // Fix <a href="app://obsidian.md/markdown_file_without_extension">
-    const prefix = 'app://obsidian.md/';
+    const prefix = 'app://';
+    const prefixSub = function removeDynamicPrefix(str:string) {
+        // 使用正则表达式替换前缀为空字符串
+        return str.replace(/^app:\/\/[^/]+\//, '');
+    }
     for (let a of Array.from(wrapper.querySelectorAll('a'))) {
         if (!a.href.startsWith(prefix)) continue;
         // This is now an internal link (wikilink)
         if (settings.linkStrippingBehaviour === 'link' || outputFormat === 'html') {
-            let href = path.join(dirname, a.href.substring(prefix.length));
+            let href = path.join(dirname, prefixSub(a.href));
             if (settings.addExtensionsToInternalLinks.length && a.href.startsWith(prefix)) {
                 if (path.extname(href) === '') {
                     const dir = path.dirname(href);
@@ -231,7 +231,7 @@ async function postProcessRenderedHTML(plugin: PandocPlugin, inputFile: string, 
     if (outputFormat !== 'html') {
         for (let img of Array.from(wrapper.querySelectorAll('img'))) {
             if (img.src.startsWith(prefix) && img.getAttribute('data-touched') !== 'true') {
-                img.src = adapter.getFullPath(img.src.substring(prefix.length));
+               img.src =prefixSub(img.src)
                 img.setAttribute('data-touched', 'true');
             }
         }
@@ -267,7 +267,7 @@ function convertSVGToPNG(svg: SVGSVGElement, scale: number = 1): Promise<HTMLIma
     canvas.width = Math.ceil(svg.width.baseVal.value * scale);
     canvas.height = Math.ceil(svg.height.baseVal.value * scale);
     const ctx = canvas.getContext('2d');
-    var svgImg = new Image;
+    const svgImg = new Image;
     svgImg.src = "data:image/svg+xml;base64," + Base64.encode(svg.outerHTML);
     return new Promise((resolve, reject) => {
         svgImg.onload = () => {
@@ -278,6 +278,9 @@ function convertSVGToPNG(svg: SVGSVGElement, scale: number = 1): Promise<HTMLIma
             img.width = Math.ceil(svg.width.baseVal.value);
             img.height = Math.ceil(svg.height.baseVal.value);
             resolve(img);
+        };
+        svgImg.onerror = () => {
+            reject(new Error('Failed to load SVG image'));
         };
     });
 }
